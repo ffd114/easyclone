@@ -15,7 +15,7 @@ Follow the example on `.easyclone.yaml`
 * `repositories`:
   * `url`: URL of the repo, can be `org/repo` for Github repositories or absolute URL `https://gitlab.com/org/repo.git`
   * `branch` (optional): specify branch or tag otherwise it will clone the latest
-  * `hash` (optional): specify hash. Warning! this will override `branch` config
+  * `hash` (optional): specify hash. This will skip branch config if specified
   * `path`: location to install
   * `enable` (default: `true`): if `strict` is `true` and this value is `false` it will delete existing directory, otherwise it will just skip installing if `false`
   * `cleanup` (default: `[]`): Same as `cleanup` parent config but specific files or folders per plugin
