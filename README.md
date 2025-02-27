@@ -24,6 +24,9 @@ Follow the example on `.easyclone.yaml`
 
 `deno run -A main.ts`
 
+### Args:
+  * `-p <path>, --path <path>` (optional): specify config file location. Default: `.easyclone.yaml`
+
 ## Requirements
 1. [Deno](https://deno.com)
 2. [Git](https://git.com)
