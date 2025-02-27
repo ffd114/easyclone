@@ -1,9 +1,9 @@
-root: .
+# root: .
 strict: true
 force: true
-cleanup:
-  - .git
-  - .github
+# cleanup:
+#   - .git
+#   - .github
 repositories:
   - url: vtos/moodle-mod_adaptivequiz
     path: mod/adaptivequiz
