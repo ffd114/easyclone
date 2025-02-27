@@ -1,0 +1,67 @@
+root: .
+strict: true
+force: true
+cleanup:
+  - .git
+  - .github
+repositories:
+  - url: vtos/moodle-mod_adaptivequiz
+    path: mod/adaptivequiz
+    hash: 7e84b4c1606b89b83ec0b57a595770116c253a3b
+    cleanup:
+      - README.md
+  - url: ecampbell/moodle-tool_uploadenrolmentmethods
+    path: admin/tool/uploadenrolmentmethods
+    branch: v1.4.0
+    enable: true
+  - url: catalyst/moodle-auth_userkey
+    path: auth/userkey
+    branch: "2022081901"
+  - url: moodleou/moodle-filter_embedquestion
+    path: filter/embedquestion
+    branch: v2.2
+  - url: moodleou/moodle-atto_embedquestion
+    path: lib/editor/atto/plugins/embedquestion
+    branch: v1.8
+  - url: brickfield/moodle-mod_board
+    path: mod/board
+    branch: v1.404.02
+  - url: ecampbell/moodle-booktool_wordimport
+    path: mod/book/tool/wordimport
+    branch: v1.4.12
+  - url: sokunthearithmakara/moodle-mod_interactivevideo
+    path: mod/interactivevideo
+    branch: v1.1.1
+  - url: rwthmoodle/moodle-mod_pdfannotator
+    path: mod/pdfannotator
+    branch: v1.5.7
+  - url: safatshahin/moodle-qbank_qtoactivity
+    path: question/bank/qtoactivity
+  - url: moodleou/moodle-qbehaviour_selfassess
+    path: question/behaviour/selfassess
+    branch: v1.4
+  - url: marcusgreen/moodle-qtype_gapfill
+    path: question/type/gapfill
+    branch: v2.141
+  - url: ndunand/moodle-qtype_matrix
+    path: question/type/matrix
+    branch: "2024041001"
+  - url: ethz-let/moodle-qtype_mtf
+    path: question/type/mtf
+  - url: ecampbell/moodle-qtype_multichoiceset
+    path: question/type/multichoiceset
+  - url: moodleou/moodle-qtype_recordrtc
+    path: question/type/recordrtc
+    branch: v1.7
+  - url: marcusgreen/moodle-qtype_wordselect
+    path: question/type/wordselect
+    branch: v2.53
+  - url: dualcube/moodle-report_overviewstats
+    path: report/overviewstats
+    branch: release-v1.5.1
+  - url: moodleou/moodle-report_embedquestion
+    branch: v1.7
+    path: report/embedquestion
+  - url: dualcube/moodle-report_overviewstats
+    hash: b277a7192eff0fe8746e10e0b9cc26d0b60090f5
+    path: report/overviewstats
