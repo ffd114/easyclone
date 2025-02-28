@@ -27,6 +27,7 @@ const schema = z
     strict: z.boolean().default(false),
     force: z.boolean().default(false),
     cleanup: z.array(z.string()).default([".git", ".github"]),
+    skip: z.boolean().default(false),
     repositories: z.array(repositorySchema),
   })
   .strict();
@@ -74,7 +75,7 @@ const isDirExists = async (path: string) => {
 
 const checkoutHash = (url: string, target: string, hash: string) => {
   // References: https://graphite.dev/guides/git-clone-specific-commit
-  console.log(`Running: git fetch ${url} hash ${hash} | output ${target}`);
+  console.log(`Fetching: ${url} hash ${hash} | output ${target}`);
 
   Deno.mkdirSync(target, { recursive: true });
 
@@ -109,9 +110,7 @@ const cloneBranch = async (url: string, target: string, branch?: string) => {
   });
 
   console.log(
-    `Running: git clone ${url} ${
-      branch ? `branch ${branch}` : ""
-    } | output ${target}`
+    `Cloning: ${url} ${branch ? `branch ${branch}` : ""} | output ${target}`
   );
   const { code, stderr } = await git.output();
 
@@ -125,6 +124,19 @@ const processRepository = async (
   repo: RepositoryConfig
 ) => {
   const target = join(rootConfig.root, repo.path);
+
+  if (!repo.enable && rootConfig.strict && (await isDirExists(target))) {
+    if (!rootConfig.force && !ask(`Are you sure you want to delete ${target}?`))
+      return;
+    console.log(`Deleting: ${target}`);
+    await rm(target);
+    return;
+  }
+
+  if (repo.enable && rootConfig.skip && (await isDirExists(target))) {
+    console.log(`Skipping: ${target}`);
+    return;
+  }
 
   if (repo.enable) {
     if (
@@ -151,11 +163,6 @@ const processRepository = async (
     for (const cleanup of repo.cleanup) {
       await rm(join(target, cleanup));
     }
-  } else if (repo.enable === false && rootConfig.strict) {
-    if (!rootConfig.force && !ask(`Are you sure you want to delete ${target}?`))
-      return;
-    console.log(`Deleting: ${target}`);
-    await rm(target);
   }
 };
 

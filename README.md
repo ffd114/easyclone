@@ -11,6 +11,7 @@ Follow the example on `.easyclone.example.yaml`
 * `root` (default: `.`): Location of the moodle base or any project
 * `strict` (default: `false`): see explanation of `repositories.enable`
 * `force` (default: `false`): if `true` it will not ask confirmation when deleting folder
+* `skip` (default: false): skip install when plugin exist. **Warning!** this will still delete if `strict` is `true` and `repositories.enable` is `false`
 * `cleanup`(default: `[.git, .github]`): array of string which files or folders will be deleted after installing plugin
 * `repositories`:
   * `url`: URL of the repo, can be `org/repo` for Github repositories or absolute URL `https://gitlab.com/org/repo.git`
