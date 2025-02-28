@@ -16,7 +16,7 @@ repositories:
     enable: true
   - url: catalyst/moodle-auth_userkey
     path: auth/userkey
-    branch: "2022081901"
+    branch: MOODLE_405
   - url: moodleou/moodle-filter_embedquestion
     path: filter/embedquestion
     branch: v2.2

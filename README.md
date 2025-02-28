@@ -4,7 +4,7 @@ This tools is provided to manage moodle plugins installation since installing ma
 
 Inspired by [silecs/moodle-gitplugins](https://github.com/silecs/moodle-gitplugins) but using Deno
 
-Follow the example on `.easyclone.yaml`
+Follow the example on `.easyclone.example.yaml`
 
 ## Config
 
