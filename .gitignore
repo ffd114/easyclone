@@ -1,3 +1,5 @@
+.DS_Store
+
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -11,4 +13,5 @@
 # Built Visual Studio Code Extensions
 *.vsix
 
-.easyclone.yaml
+easyclone.yaml
+easyclone

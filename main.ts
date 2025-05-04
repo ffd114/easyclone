@@ -3,6 +3,7 @@ import { load } from "@niiju/safe-yaml-env/zod";
 import z, { ZodError } from "zod";
 import { FileNotFoundError, MissingEnvVarError } from "@niiju/safe-yaml-env";
 import { join } from "@std/path";
+import * as fs from "node:fs/promises";
 
 const repositorySchema = z.object({
   url: z.string().transform((val) => {
@@ -70,6 +71,16 @@ const isDirExists = async (path: string) => {
     return targetInfo.isDirectory;
   } catch (_) {
     return false;
+  }
+};
+
+const copyDir = async (src: string, dest: string) => {
+  console.log(`Copying : ${src} | output ${dest}`);
+
+  try {
+    await fs.cp(src, dest);
+  } catch (error) {
+    throw error;
   }
 };
 
@@ -148,7 +159,9 @@ const processRepository = async (
 
     await rm(target);
 
-    if (repo.hash) {
+    if (repo.url.startsWith("./")) {
+      await copyDir(repo.url, target);
+    } else if (repo.hash) {
       checkoutHash(repo.url, target, repo.hash);
     } else {
       await cloneBranch(repo.url, target, repo.branch);
