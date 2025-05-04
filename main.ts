@@ -3,7 +3,6 @@ import { load } from "@niiju/safe-yaml-env/zod";
 import z, { ZodError } from "zod";
 import { FileNotFoundError, MissingEnvVarError } from "@niiju/safe-yaml-env";
 import { join } from "@std/path";
-import * as fs from "node:fs/promises";
 
 const repositorySchema = z
   .object({
@@ -24,7 +23,7 @@ const repositorySchema = z
     branch: z.string().optional(),
     hash: z.string().optional(),
     enable: z.boolean().default(true),
-    cleanup: z.array(z.string()).default([]),
+    cleanup: z.array(z.string()).default([".git", ".github"]),
   })
   .superRefine((data, ctx) => {
     if (!data.url && !data.path) {
@@ -84,7 +83,9 @@ const ask = (message: string): boolean => {
 const rm = async (target: string) => {
   try {
     const targetInfo = await Deno.stat(target);
+
     if (targetInfo.isDirectory || targetInfo.isFile) {
+      console.info(`Deleting: ${target}`);
       await Deno.remove(target, { recursive: true });
     }
   } catch (_) {
@@ -200,7 +201,6 @@ const processRepository = async (
 
     if (repo.path) {
       await copyDir(repo.path, target);
-      return;
     } else if (repo.url) {
       if (repo.hash) {
         checkoutHash(repo.url, target, repo.hash);
