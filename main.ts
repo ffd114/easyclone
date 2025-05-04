@@ -101,15 +101,26 @@ const isDirExists = async (path: string) => {
   }
 };
 
+const _copyDir = async (src: string, dest: string) => {
+  for await (const entry of Deno.readDir(src)) {
+    const srcPath = join(src, entry.name);
+    const destPath = join(dest, entry.name);
+
+    if (entry.isDirectory) {
+      await Deno.mkdir(destPath, { recursive: true });
+      await _copyDir(srcPath, destPath);
+    } else if (entry.isFile) {
+      await Deno.copyFile(srcPath, destPath);
+    }
+  }
+};
+
 const copyDir = async (src: string, dest: string) => {
   console.log(`Copying : ${src} | output ${dest}`);
 
-  try {
-    Deno.mkdirSync(dest, { recursive: true });
-    await fs.cp(src, dest);
-  } catch (error) {
-    throw error;
-  }
+  await Deno.mkdir(dest, { recursive: true });
+
+  await _copyDir(src, dest);
 };
 
 const checkoutHash = (url: string, target: string, hash: string) => {
