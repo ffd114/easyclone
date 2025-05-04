@@ -25,6 +25,10 @@ Follow the example on `easyclone.example.yaml`
 
 `deno run -A main.ts`
 
+## Compile
+
+`deno compile --allow-run=git --allow-read --allow-write --no-check main.ts`
+
 ### Args:
 
 - `-p <path>, --path <path>` (optional): specify config file location. Default: `easyclone.yaml`
