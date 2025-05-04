@@ -5,22 +5,49 @@ import { FileNotFoundError, MissingEnvVarError } from "@niiju/safe-yaml-env";
 import { join } from "@std/path";
 import * as fs from "node:fs/promises";
 
-const repositorySchema = z.object({
-  url: z.string().transform((val) => {
-    const repoPattern = /^[\w-_]+\/[\w-_]+$/;
+const repositorySchema = z
+  .object({
+    url: z
+      .string()
+      .transform((val) => {
+        const repoPattern = /^[\w-_]+\/[\w-_]+$/;
 
-    if (repoPattern.test(val)) {
-      return `https://github.com/${val}.git`;
+        if (repoPattern.test(val)) {
+          return `https://github.com/${val}.git`;
+        }
+
+        return val;
+      })
+      .optional(),
+    path: z.string().optional(),
+    target: z.string(),
+    branch: z.string().optional(),
+    hash: z.string().optional(),
+    enable: z.boolean().default(true),
+    cleanup: z.array(z.string()).default([]),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.url && !data.path) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Either url or path must be provided",
+      });
     }
 
-    return val;
-  }),
-  branch: z.string().optional(),
-  hash: z.string().optional(),
-  enable: z.boolean().default(true),
-  path: z.string(),
-  cleanup: z.array(z.string()).default([]),
-});
+    if (data.url && data.path) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Only one of url or path must be provided",
+      });
+    }
+
+    if (data.hash && data.branch) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Only one of hash or branch must be provided",
+      });
+    }
+  });
 
 const schema = z
   .object({
@@ -135,7 +162,7 @@ const processRepository = async (
   rootConfig: RootConfig,
   repo: RepositoryConfig
 ) => {
-  const target = join(rootConfig.root, repo.path);
+  const target = join(rootConfig.root, repo.target);
 
   if (!repo.enable && rootConfig.strict && (await isDirExists(target))) {
     if (!rootConfig.force && !ask(`Are you sure you want to delete ${target}?`))
@@ -160,12 +187,15 @@ const processRepository = async (
 
     await rm(target);
 
-    if (repo.url.startsWith("./")) {
-      await copyDir(repo.url, target);
-    } else if (repo.hash) {
-      checkoutHash(repo.url, target, repo.hash);
-    } else {
-      await cloneBranch(repo.url, target, repo.branch);
+    if (repo.path) {
+      await copyDir(repo.path, target);
+      return;
+    } else if (repo.url) {
+      if (repo.hash) {
+        checkoutHash(repo.url, target, repo.hash);
+      } else {
+        await cloneBranch(repo.url, target, repo.branch);
+      }
     }
 
     // cleanup using root config

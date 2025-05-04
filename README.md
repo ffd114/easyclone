@@ -14,10 +14,11 @@ Follow the example on `easyclone.example.yaml`
 - `skip` (default: `false`): skip install when plugin exist. **Warning!** this will still delete if `strict` is `true` and `repositories.enable` is `false`
 - `cleanup`(default: `[.git, .github]`): array of string which files or folders will be deleted after installing plugin
 - `repositories`:
-  - `url`: URL of the repo, can be `org/repo` for Github repositories or absolute URL `https://gitlab.com/org/repo.git`, or if local directory use `./` prefix
-  - `branch` (optional): specify branch or tag otherwise it will clone the latest
-  - `hash` (optional): specify hash. This will skip branch config if specified
-  - `path`: location to install
+  - `url`: URL of the repo, can be `org/repo` for Github repositories or absolute URL `https://gitlab.com/org/repo.git`. **Cannot be used with `path`**
+  - `branch` (optional): specify branch or tag otherwise it will clone the latest. Only when `url` is specified
+  - `hash` (optional): specify hash. This will skip branch config if specified. Only when `url` is specified
+  - `path`: path to the plugin for local directory. **Cannot be used with `url`**
+  - `target`: location to install
   - `enable` (default: `true`): if `strict` is `true` and this value is `false` it will delete existing directory, otherwise it will just skip installing if `false`
   - `cleanup` (default: `[]`): Same as `cleanup` parent config but specific files or folders per plugin
 
