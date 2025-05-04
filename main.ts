@@ -78,6 +78,7 @@ const copyDir = async (src: string, dest: string) => {
   console.log(`Copying : ${src} | output ${dest}`);
 
   try {
+    Deno.mkdirSync(dest, { recursive: true });
     await fs.cp(src, dest);
   } catch (error) {
     throw error;
