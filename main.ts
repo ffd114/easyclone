@@ -170,7 +170,7 @@ if (import.meta.main) {
   const args = parseArgs(Deno.args, {
     string: ["path"],
     alias: { path: "p" },
-    default: { path: ".easyclone.yaml" },
+    default: { path: "easyclone.yaml" },
   });
 
   try {

@@ -4,34 +4,35 @@ This tools is provided to manage moodle plugins installation since installing ma
 
 Inspired by [silecs/moodle-gitplugins](https://github.com/silecs/moodle-gitplugins) but using Deno
 
-Follow the example on `.easyclone.example.yaml`
+Follow the example on `easyclone.example.yaml`
 
 ## Config
 
-* `root` (default: `.`): Location of the moodle base or any project
-* `strict` (default: `false`): see explanation of `repositories.enable`
-* `force` (default: `false`): if `true` it will not ask confirmation when deleting folder
-* `skip` (default: `false`): skip install when plugin exist. **Warning!** this will still delete if `strict` is `true` and `repositories.enable` is `false`
-* `cleanup`(default: `[.git, .github]`): array of string which files or folders will be deleted after installing plugin
-* `repositories`:
-  * `url`: URL of the repo, can be `org/repo` for Github repositories or absolute URL `https://gitlab.com/org/repo.git`
-  * `branch` (optional): specify branch or tag otherwise it will clone the latest
-  * `hash` (optional): specify hash. This will skip branch config if specified
-  * `path`: location to install
-  * `enable` (default: `true`): if `strict` is `true` and this value is `false` it will delete existing directory, otherwise it will just skip installing if `false`
-  * `cleanup` (default: `[]`): Same as `cleanup` parent config but specific files or folders per plugin
+- `root` (default: `.`): Location of the moodle base or any project
+- `strict` (default: `false`): see explanation of `repositories.enable`
+- `force` (default: `false`): if `true` it will not ask confirmation when deleting folder
+- `skip` (default: `false`): skip install when plugin exist. **Warning!** this will still delete if `strict` is `true` and `repositories.enable` is `false`
+- `cleanup`(default: `[.git, .github]`): array of string which files or folders will be deleted after installing plugin
+- `repositories`:
+  - `url`: URL of the repo, can be `org/repo` for Github repositories or absolute URL `https://gitlab.com/org/repo.git`
+  - `branch` (optional): specify branch or tag otherwise it will clone the latest
+  - `hash` (optional): specify hash. This will skip branch config if specified
+  - `path`: location to install
+  - `enable` (default: `true`): if `strict` is `true` and this value is `false` it will delete existing directory, otherwise it will just skip installing if `false`
+  - `cleanup` (default: `[]`): Same as `cleanup` parent config but specific files or folders per plugin
 
 ## Running
 
 `deno run -A main.ts`
 
 ### Args:
-  * `-p <path>, --path <path>` (optional): specify config file location. Default: `.easyclone.yaml`
+
+- `-p <path>, --path <path>` (optional): specify config file location. Default: `easyclone.yaml`
 
 ## Requirements
+
 1. [Deno](https://deno.com)
 2. [Git](https://git.com)
-
 
 # License
 
