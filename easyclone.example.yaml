@@ -5,7 +5,8 @@ force: true
 #   - .git
 #   - .github
 repositories:
-  - target: local/test
+  - path: ./plugins/test
+    target: local/test
   - url: vtos/moodle-mod_adaptivequiz
     target: mod/adaptivequiz
     hash: 7e84b4c1606b89b83ec0b57a595770116c253a3b
