@@ -27,14 +27,14 @@ Follow the example on `easyclone.example.yaml`
 You can use environment variables to override the config values. The format is `${ENV_VARIABLE}` or `${ENV_VARIABLE:-defaultValue}`, for example:
 
 ```yaml
-root: ${MOODLE_ROOT}
+root: ${MOODLE_ROOT:-path/to/moodle}
 # ... other data
 repositories:
   - url: https://${GH_USERNAME}:${GH_PERSONAL_ACCESS_TOKEN}@github.com/org/repo.git
     target: local/test
 ```
 
-Credit to: [](https://github.com/eNiiju/safe-yaml-env/blob/25937192c97dd9a39788747fb7d2ee6a872c9bc7/src/common/utils.ts)
+Credit to: [eNiiju/safe-yaml-env](https://github.com/eNiiju/safe-yaml-env/blob/25937192c97dd9a39788747fb7d2ee6a872c9bc7/src/common/utils.ts)
 
 ## Running
 
