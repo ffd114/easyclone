@@ -1,12 +1,11 @@
 import { parseArgs } from "@std/cli/parse-args";
-import { load } from "@niiju/safe-yaml-env/zod";
-import z, { ZodError } from "zod";
-import { FileNotFoundError, MissingEnvVarError } from "@niiju/safe-yaml-env";
+import * as yup from "yup";
 import { join } from "@std/path";
+import { parse } from "@std/yaml";
 
-const repositorySchema = z
+const repositorySchema = yup
   .object({
-    url: z
+    url: yup
       .string()
       .transform((val) => {
         const repoPattern = /^[\w-_]+\/[\w-_]+$/;
@@ -18,61 +17,62 @@ const repositorySchema = z
         return val;
       })
       .optional(),
-    path: z.string().optional(),
-    target: z.string(),
-    branch: z.string().optional(),
-    hash: z.string().optional(),
-    enable: z.boolean().default(true),
-    cleanup: z.array(z.string()).default([".git", ".github"]),
+    path: yup.string().optional(),
+    target: yup.string().required(),
+    branch: yup.string().optional(),
+    hash: yup.string().optional(),
+    enable: yup.boolean().required().default(true),
+    cleanup: yup.array().of(yup.string().required()).required().default([]),
   })
-  .superRefine((data, ctx) => {
-    if (!data.url && !data.path) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Either url or path must be provided",
-      });
+  .test(
+    "url-path",
+    "Either url or path must be provided",
+    function (value, ctx) {
+      if (!value.url && !value.path) {
+        return ctx.createError({
+          // Just for experimenting on how to use params
+          params: { target: value.target },
+          message: "Either url or path must be provided. Target: (${target})",
+        });
+      }
+
+      if (value.url && value.path) {
+        return ctx.createError({
+          message: `Either url or path must be provided, not both. Target: (${value.target})`,
+        });
+      }
+
+      if (value.hash && value.branch) {
+        return ctx.createError({
+          message: `Either hash or branch must be provided, not both. Target: (${value.target})`,
+        });
+      }
+
+      return true;
     }
+  );
+const schema = yup.object({
+  root: yup.string().required().default("."),
+  strict: yup.boolean().required().default(false),
+  force: yup.boolean().required().default(false),
+  cleanup: yup.array(yup.string().required()).default([".git", ".github"]),
+  skip: yup.boolean().required().default(false),
+  repositories: yup.array().of(repositorySchema).required(),
+});
 
-    if (data.url && data.path) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Only one of url or path must be provided",
-      });
-    }
-
-    if (data.hash && data.branch) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Only one of hash or branch must be provided",
-      });
-    }
-  });
-
-const schema = z
-  .object({
-    root: z.string().default("."),
-    strict: z.boolean().default(false),
-    force: z.boolean().default(false),
-    cleanup: z.array(z.string()).default([".git", ".github"]),
-    skip: z.boolean().default(false),
-    repositories: z.array(repositorySchema),
-  })
-  .strict();
-
-type Config = z.infer<typeof schema>;
+interface Config extends yup.InferType<typeof schema> {}
 type RootConfig = Omit<Config, "repositories">;
-type RepositoryConfig = z.infer<typeof repositorySchema>;
+
+interface RepositoryConfig extends yup.InferType<typeof repositorySchema> {}
 
 const parseFile = async (path: string): Promise<Config> => {
-  const configFile = await Deno.open(path);
-  const configFileInfo = await configFile.stat();
+  const decoder = new TextDecoder("utf-8");
+  const content = await Deno.readFile(path);
+  const decoded = decoder.decode(content);
 
-  if (!configFileInfo.isFile) {
-    throw new Error("Config file is not found");
-  }
+  const data = parse(decoded);
 
-  const data = load(path, schema);
-  return data as Config;
+  return (await schema.validate(data)) as Config;
 };
 
 const ask = (message: string): boolean => {
@@ -179,7 +179,6 @@ const processRepository = async (
   if (!repo.enable && rootConfig.strict && (await isDirExists(target))) {
     if (!rootConfig.force && !ask(`Are you sure you want to delete ${target}?`))
       return;
-    console.log(`Deleting: ${target}`);
     await rm(target);
     return;
   }
@@ -223,26 +222,20 @@ const processRepository = async (
 
 if (import.meta.main) {
   const args = parseArgs(Deno.args, {
-    string: ["path"],
-    alias: { path: "p" },
-    default: { path: "easyclone.yaml" },
+    string: ["config"],
+    alias: { config: "c" },
+    default: { config: "easyclone.yaml" },
   });
 
   try {
-    const data = await parseFile(args.path);
+    const data = await parseFile(args.config);
 
     for (const repo of data.repositories) {
       await processRepository(data, repo);
     }
   } catch (error: unknown) {
-    if (error instanceof FileNotFoundError) {
-      console.error("File not found");
-    } else if (error instanceof SyntaxError) {
+    if (error instanceof SyntaxError) {
       console.error("Invalid YAML");
-    } else if (error instanceof MissingEnvVarError) {
-      console.error("Missing environment variable:", error.envVarKey);
-    } else if (error instanceof ZodError) {
-      console.error("Invalid data:", error.errors);
     } else if (error instanceof Error) {
       console.error(error.message);
     } else {
