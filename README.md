@@ -42,7 +42,7 @@ Credit to: [eNiiju/safe-yaml-env](https://github.com/eNiiju/safe-yaml-env/blob/2
 
 ## Compile
 
-`deno compile --allow-run=git --allow-read --allow-write main.ts`
+`deno compile --allow-run=git --allow-read --allow-write --allow-env main.ts`
 
 ### Args:
 
