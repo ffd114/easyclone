@@ -22,6 +22,20 @@ Follow the example on `easyclone.example.yaml`
   - `enable` (default: `true`): if `strict` is `true` and this value is `false` it will delete existing directory, otherwise it will just skip installing if `false`
   - `cleanup` (default: `[]`): Same as `cleanup` parent config but specific files or folders per plugin
 
+### Environment Variables
+
+You can use environment variables to override the config values. The format is `${ENV_VARIABLE}` or `${ENV_VARIABLE:-defaultValue}`, for example:
+
+```yaml
+root: ${MOODLE_ROOT}
+# ... other data
+repositories:
+  - url: https://${GH_USERNAME}:${GH_PERSONAL_ACCESS_TOKEN}@github.com/org/repo.git
+    target: local/test
+```
+
+Credit to: [](https://github.com/eNiiju/safe-yaml-env/blob/25937192c97dd9a39788747fb7d2ee6a872c9bc7/src/common/utils.ts)
+
 ## Running
 
 `deno run -A main.ts`

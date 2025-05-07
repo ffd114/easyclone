@@ -2,12 +2,13 @@ import { parseArgs } from "@std/cli/parse-args";
 import * as yup from "yup";
 import { join } from "@std/path";
 import { parse } from "@std/yaml";
+import { replaceEnvVars } from "./utils.ts";
 
 const repositorySchema = yup
   .object({
     url: yup
       .string()
-      .transform((val) => {
+      .transform((val: string) => {
         const repoPattern = /^[\w-_]+\/[\w-_]+$/;
 
         if (repoPattern.test(val)) {
@@ -69,8 +70,9 @@ const parseFile = async (path: string): Promise<Config> => {
   const decoder = new TextDecoder("utf-8");
   const content = await Deno.readFile(path);
   const decoded = decoder.decode(content);
+  const decodedWithEnv = replaceEnvVars(decoded);
 
-  const data = parse(decoded);
+  const data = parse(decodedWithEnv);
 
   return (await schema.validate(data)) as Config;
 };
