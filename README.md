@@ -28,7 +28,7 @@ Follow the example on `easyclone.example.yaml`
 
 ## Compile
 
-`deno compile --allow-run=git --allow-read --allow-write --no-check main.ts`
+`deno compile --allow-run=git --allow-read --allow-write main.ts`
 
 ### Args:
 
