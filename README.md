@@ -8,18 +8,19 @@ Follow the example on `easyclone.example.yaml`
 
 ## Config
 
-- `root` (default: `.`): Location of the moodle base or any project
-- `strict` (default: `false`): see explanation of `repositories.enable`
+- `root` (default: `.`): location of the moodle base or any project
+- `strict` (default: `false`): if `true` delete `repositories.target` if `repositories.enable` is `true` and `repositories.target` directory is exist
 - `force` (default: `false`): if `true` it will not ask confirmation when deleting folder
-- `skip` (default: `false`): skip install when `repositories.target` exist. **Warning!** This config have lower priority than `repositories.enable` and `strict`, so even if `skip` is `true` but `repositories.enable` is `false` and `strict` is `true`, it will still delete the existing directory
 - `cleanup`(default: `[.git, .github]`): array of string which files or folders will be deleted after installing plugin
+- `skip` (default: `false`): if `repositories.enable` is `true` and `strict` is `false`, will `skip` installation
 - `repositories`:
   - `url`: URL of the repo, can be `org/repo` for Github repositories or absolute URL `https://gitlab.com/org/repo.git`. **Mutually exclusive with `path`**
   - `branch` (optional): specify branch or tag otherwise it will clone the latest. Only when `url` is specified
   - `hash` (optional): specify hash. This will skip `branch` config if specified. Only when `url` is specified
   - `path`: path to the plugin for local directory. **Mutually exclusive with `url`**
   - `target`: location to install
-  - `enable` (default: `true`): if `strict` is `true` and this value is `false` it will delete existing directory, otherwise it will just skip installing if `false`
+  - `enable` (default: `true`): enable installation of the plugin. See `skip` and `strict` for how to delete existing plugin
+  - `skip` (optional, boolean): same as parent config `skip` but takes higher priority if set
   - `cleanup` (default: `[]`): Same as `cleanup` parent config but specific files or folders per plugin
 
 ### Environment Variables

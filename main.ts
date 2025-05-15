@@ -22,6 +22,7 @@ const repositorySchema = yup
     target: yup.string().required(),
     branch: yup.string().optional(),
     hash: yup.string().optional(),
+    skip: yup.boolean().optional(),
     enable: yup.boolean().required().default(true),
     cleanup: yup.array().of(yup.string().required()).required().default([]),
   })
@@ -178,21 +179,25 @@ const processRepository = async (
 ) => {
   const target = join(rootConfig.root, repo.target);
 
-  if (!repo.enable && rootConfig.strict && (await isDirExists(target))) {
+  const isTargetExists = await isDirExists(target);
+
+  if (!repo.enable && rootConfig.strict && isTargetExists) {
     if (!rootConfig.force && !ask(`Are you sure you want to delete ${target}?`))
       return;
     await rm(target);
     return;
   }
 
-  if (repo.enable && rootConfig.skip && (await isDirExists(target))) {
+  const skip = repo.skip ?? rootConfig.skip;
+
+  if (skip === true && repo.enable === true && isTargetExists) {
     console.log(`Skipping: ${target}`);
     return;
   }
 
   if (repo.enable) {
     if (
-      (await isDirExists(target)) &&
+      isTargetExists &&
       !rootConfig.force &&
       !ask(`Target ${target} exists. Delete?`)
     )
