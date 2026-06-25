@@ -4,16 +4,32 @@ import { replaceEnvVars } from "./utils.ts";
 
 export const repositorySchema = yup
   .object({
+    isPrivate: yup.boolean().optional().default(false),
     url: yup
       .string()
-      .transform((val: string) => {
-        const repoPattern = /^[\w-_]+\/[\w-_]+$/;
-
-        if (repoPattern.test(val)) {
-          return `https://github.com/${val}.git`;
-        }
-
-        return val;
+      .when("isPrivate", {
+        is: true,
+        then: (schema) =>
+          schema.transform((val?: string) => {
+            if (!val) return val;
+            const repoPattern = /^[\w-_]+\/[\w-_]+$/;
+            if (repoPattern.test(val)) {
+              return `git@github.com:${val}.git`;
+            }
+            if (val.startsWith("https://github.com/")) {
+              return val.replace("https://github.com/", "git@github.com:").replace(/\.git$/, "") + ".git";
+            }
+            return val;
+          }),
+        otherwise: (schema) =>
+          schema.transform((val?: string) => {
+            if (!val) return val;
+            const repoPattern = /^[\w-_]+\/[\w-_]+$/;
+            if (repoPattern.test(val)) {
+              return `https://github.com/${val}.git`;
+            }
+            return val;
+          }),
       })
       .optional(),
     path: yup.string().optional(),
@@ -73,6 +89,7 @@ export const schema = yup.object({
   force: yup.boolean().required().default(false),
   cleanup: yup.array(yup.string().required()).default([".git", ".github"]),
   skip: yup.boolean().required().default(false),
+  sshKey: yup.string().optional(),
   repositories: yup.array().of(repositorySchema).required(),
 });
 

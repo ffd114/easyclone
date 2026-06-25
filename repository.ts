@@ -2,40 +2,66 @@ import { join } from "@std/path";
 import { RootConfig, RepositoryConfig } from "./config.ts";
 import { rm, isDirExists, copyDir, ask } from "./utils.ts";
 
-export const checkoutHash = (url: string, target: string, hash: string) => {
+export const checkoutHash = (
+  url: string,
+  target: string,
+  hash: string,
+  sshKey?: string
+) => {
   // References: https://graphite.dev/guides/git-clone-specific-commit
   console.log(`Fetching: ${url} hash ${hash} | output ${target}`);
 
   Deno.mkdirSync(target, { recursive: true });
 
+  const env = {
+    ...Deno.env.toObject(),
+    ...(sshKey ? { GIT_SSH_COMMAND: `ssh -i ${sshKey} -o StrictHostKeyChecking=no` } : {}),
+  };
+
   new Deno.Command("git", {
     args: ["init"],
     cwd: target,
+    env,
   }).outputSync();
 
   new Deno.Command("git", {
     args: ["remote", "add", "origin", url],
     cwd: target,
+    env,
   }).outputSync();
 
   new Deno.Command("git", {
     args: ["fetch", "--depth=1", "origin", hash],
     cwd: target,
+    env,
   }).outputSync();
 
   new Deno.Command("git", {
     args: ["checkout", "FETCH_HEAD"],
     cwd: target,
+    env,
   }).outputSync();
 };
 
-export const cloneBranch = async (url: string, target: string, branch?: string) => {
+export const cloneBranch = async (
+  url: string,
+  target: string,
+  branch?: string,
+  sshKey?: string
+) => {
   const args = ["clone", "--depth=1", "--single-branch", url, target];
   if (branch) {
     args.splice(3, 0, "--branch", branch);
   }
+
+  const env = {
+    ...Deno.env.toObject(),
+    ...(sshKey ? { GIT_SSH_COMMAND: `ssh -i ${sshKey} -o StrictHostKeyChecking=no` } : {}),
+  };
+
   const git = new Deno.Command("git", {
     args,
+    env,
   });
 
   console.log(
@@ -82,13 +108,15 @@ export const processRepository = async (
 
     await rm(target);
 
+    const sshKey = rootConfig.sshKey;
+
     if (repo.path) {
       await copyDir(repo.path, target);
     } else if (repo.url) {
       if (repo.hash) {
-        checkoutHash(repo.url, target, repo.hash);
+        checkoutHash(repo.url, target, repo.hash, sshKey);
       } else {
-        await cloneBranch(repo.url, target, repo.branch);
+        await cloneBranch(repo.url, target, repo.branch, sshKey);
       }
     }
 
