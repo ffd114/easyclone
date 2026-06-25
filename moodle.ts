@@ -1,4 +1,4 @@
-import { join } from "@std/path";
+import { isAbsolute, join } from "@std/path";
 import cliProgress from "cli-progress";
 import { RootConfig } from "./config.ts";
 import { rm, isDirExists, _copyDir, ask } from "./utils.ts";
@@ -142,7 +142,7 @@ export const setupMoodle = async (rootConfig: RootConfig) => {
   }
 
   if (rootConfig.moodle.patch) {
-    const patchDir = "patch";
+    const patchDir = rootConfig.moodle.patchDir;
     try {
       const dirInfo = await Deno.stat(patchDir);
       if (dirInfo.isDirectory) {
@@ -158,7 +158,9 @@ export const setupMoodle = async (rootConfig: RootConfig) => {
           console.log(`Applying ${patches.length} patches to ${target}`);
           for (const patch of patches) {
             console.log(`Applying patch: ${patch}`);
-            const patchPath = join(Deno.cwd(), patchDir, patch);
+            const patchPath = isAbsolute(patchDir)
+              ? join(patchDir, patch)
+              : join(Deno.cwd(), patchDir, patch);
             const { code, stderr } = await new Deno.Command("patch", {
               args: ["-p1", "-d", target, "-i", patchPath],
             }).output();

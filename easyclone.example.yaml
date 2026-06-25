@@ -4,6 +4,7 @@ moodle:
   overwrite: true
   patch: true
   cache: true
+  patchDir: patch
 strict: true
 force: true
 # cleanup:

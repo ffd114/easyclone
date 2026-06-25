@@ -58,6 +58,7 @@ export const schema = yup.object({
     overwrite: yup.boolean().default(false),
     patch: yup.boolean().default(true),
     cache: yup.boolean().default(true),
+    patchDir: yup.string().required().default("patch"),
   }).optional(),
   strict: yup.boolean().required().default(false),
   force: yup.boolean().required().default(false),

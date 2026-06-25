@@ -14,6 +14,7 @@ Please refer to the example in `easyclone.example.yaml`.
   - `overwrite` (default: `false`): If `true`, automatically deletes the existing Moodle folder and re-downloads it. If `false`, skips the download if the directory already exists.
   - `patch` (default: `true`): If `true`, applies any `.patch` files found inside the `patch` directory locally.
   - `cache` (default: `true`): If `true`, caches the downloaded Moodle archive file inside a `.cache` folder to avoid network downloads on subsequent setup runs.
+  - `patchDir` (default: `patch`): Directory containing `.patch` files to apply to Moodle.
 - `strict` (default: `false`): If `true`, deletes the existing `repositories.target` directory before installing, provided `repositories.enable` is `true`.
 - `force` (default: `false`): If `true`, deletes directories without asking for confirmation.
 - `cleanup` (default: `[.git, .github]`): An array of file or folder names to delete after a plugin is installed.
