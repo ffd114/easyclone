@@ -8,7 +8,10 @@ Follow the example on `easyclone.example.yaml`
 
 ## Config
 
-- `root` (default: `.`): location of the moodle base or any project
+- `moodle` (optional): configuration for downloading and setting up Moodle.
+  - `url` (required if `moodle` is set): URL to download the Moodle distribution (zip or tgz).
+  - `path` (default: `.`): location where Moodle will be extracted and the base path for installing repository plugins.
+  - `overwrite` (default: `false`): if `true`, automatically deletes the existing Moodle folder and re-downloads it. If `false`, skips downloading if the directory already exists.
 - `strict` (default: `false`): if `true` delete `repositories.target` if `repositories.enable` is `true` and `repositories.target` directory is exist
 - `force` (default: `false`): if `true` it will not ask confirmation when deleting folder
 - `cleanup`(default: `[.git, .github]`): array of string which files or folders will be deleted after installing plugin
@@ -28,7 +31,9 @@ Follow the example on `easyclone.example.yaml`
 You can use environment variables to override the config values. The format is `${ENV_VARIABLE}` or `${ENV_VARIABLE:-defaultValue}`, for example:
 
 ```yaml
-root: ${MOODLE_ROOT:-path/to/moodle}
+moodle:
+  url: https://packaging.moodle.org/moodle-4.5.0.tgz
+  path: ${MOODLE_ROOT:-path/to/moodle}
 # ... other data
 repositories:
   - url: https://${GH_USERNAME}:${GH_PERSONAL_ACCESS_TOKEN}@github.com/org/repo.git
