@@ -5,6 +5,14 @@ moodle:
   patch: true
   cache: true
   patchDir: patch
+  cleanup:
+    - .git
+    - .github
+    - .gitattributes
+    - .gitignore
+    - README.txt
+    - readme_moodle.txt
+    - COPYING.txt
 strict: true
 force: true
 # cleanup:

@@ -175,4 +175,11 @@ export const setupMoodle = async (rootConfig: RootConfig) => {
       // Patch directory does not exist or cannot be read, safely ignore
     }
   }
+
+  if (rootConfig.moodle.cleanup) {
+    for (const cleanup of rootConfig.moodle.cleanup) {
+      await rm(join(target, cleanup));
+    }
+  }
 };
+
