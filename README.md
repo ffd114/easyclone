@@ -60,6 +60,7 @@ Credit: [eNiiju/safe-yaml-env](https://github.com/eNiiju/safe-yaml-env/blob/2593
 
 1. [Deno](https://deno.com)
 2. [Git](https://git.com)
+3. `patch` CLI utility (typically available out of the box on macOS and Linux)
 
 # License
 
