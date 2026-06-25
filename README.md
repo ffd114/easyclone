@@ -15,14 +15,17 @@ Please refer to the example in `easyclone.example.yaml`.
   - `patch` (default: `true`): If `true`, applies any `.patch` files found inside the `patch` directory locally.
   - `cache` (default: `true`): If `true`, caches the downloaded Moodle archive file inside a `.cache` folder to avoid network downloads on subsequent setup runs.
   - `patchDir` (default: `patch`): Directory containing `.patch` files to apply to Moodle.
+  - `cleanup` (default: `[".git", ".github", ".gitattributes", ".gitignore", "README.txt", "readme_moodle.txt", "COPYING.txt"]`): An array of file or folder names to delete inside the extracted Moodle folder after installation.
 - `strict` (default: `false`): If `true`, deletes the existing `repositories.target` directory before installing, provided `repositories.enable` is `true`.
 - `force` (default: `false`): If `true`, deletes directories without asking for confirmation.
 - `cleanup` (default: `[.git, .github]`): An array of file or folder names to delete after a plugin is installed.
 - `skip` (default: `false`): If `true`, skips the installation of plugins globally (can be overridden per repository).
+- `sshKey` (optional): Path to the private SSH key to use for git operations (e.g., `~/.ssh/id_rsa`).
 - `repositories`:
   - `url`: The URL of the repository. Can be `org/repo` for GitHub repositories or an absolute URL like `https://gitlab.com/org/repo.git`. **Mutually exclusive with `path`.**
-  - `branch` (optional): Specifies a branch or tag. If omitted, the default branch is cloned. Applicable only when `url` is specified.
-  - `hash` (optional): Specifies a commit hash. If provided, the `branch` setting is ignored. Applicable only when `url` is specified.
+  - `isPrivate` (default: `false`): If `true`, transforms GitHub repository URLs/shortcuts to SSH format (e.g., `org/repo` to `git@github.com:org/repo.git` or `https://github.com/org/repo` to `git@github.com:org/repo.git`). If `false`, shortcut `org/repo` is cloned via HTTPS (`https://github.com/org/repo.git`).
+  - `branch` (optional): Specifies a branch or tag. If omitted, the default branch is cloned. Applicable only when `url` is specified. **Mutually exclusive with `hash`.**
+  - `hash` (optional): Specifies a commit hash. Applicable only when `url` is specified. **Mutually exclusive with `branch`.**
   - `path`: Path to a local directory containing the plugin. **Mutually exclusive with `url`.**
   - `target`: The destination path where the plugin should be installed.
   - `enable` (default: `true`): Enables the installation of the plugin.
