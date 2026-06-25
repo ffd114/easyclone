@@ -1,0 +1,105 @@
+import { join } from "@std/path";
+import { RootConfig, RepositoryConfig } from "./config.ts";
+import { rm, isDirExists, copyDir, ask } from "./utils.ts";
+
+export const checkoutHash = (url: string, target: string, hash: string) => {
+  // References: https://graphite.dev/guides/git-clone-specific-commit
+  console.log(`Fetching: ${url} hash ${hash} | output ${target}`);
+
+  Deno.mkdirSync(target, { recursive: true });
+
+  new Deno.Command("git", {
+    args: ["init"],
+    cwd: target,
+  }).outputSync();
+
+  new Deno.Command("git", {
+    args: ["remote", "add", "origin", url],
+    cwd: target,
+  }).outputSync();
+
+  new Deno.Command("git", {
+    args: ["fetch", "--depth=1", "origin", hash],
+    cwd: target,
+  }).outputSync();
+
+  new Deno.Command("git", {
+    args: ["checkout", "FETCH_HEAD"],
+    cwd: target,
+  }).outputSync();
+};
+
+export const cloneBranch = async (url: string, target: string, branch?: string) => {
+  const args = ["clone", "--depth=1", "--single-branch", url, target];
+  if (branch) {
+    args.splice(3, 0, "--branch", branch);
+  }
+  const git = new Deno.Command("git", {
+    args,
+  });
+
+  console.log(
+    `Cloning: ${url} ${branch ? `branch ${branch}` : ""} | output ${target}`
+  );
+  const { code, stderr } = await git.output();
+
+  if (code !== 0) {
+    console.error(new TextDecoder().decode(stderr));
+  }
+};
+
+export const processRepository = async (
+  rootConfig: RootConfig,
+  repo: RepositoryConfig
+) => {
+  const rootDir = rootConfig.moodle?.path ?? ".";
+  const target = join(rootDir, repo.target);
+
+  const isTargetExists = await isDirExists(target);
+
+  if (!repo.enable && rootConfig.strict && isTargetExists) {
+    if (!rootConfig.force && !ask(`Are you sure you want to delete ${target}?`))
+      return;
+    await rm(target);
+    return;
+  }
+
+  // Skip with higher priority for repo config
+  const skip = repo.skip || rootConfig.skip;
+
+  if (skip === true && repo.enable === true && isTargetExists) {
+    console.log(`Skipping: ${target}`);
+    return;
+  }
+
+  if (repo.enable) {
+    if (
+      isTargetExists &&
+      !rootConfig.force &&
+      !ask(`Target ${target} exists. Delete?`)
+    )
+      return;
+
+    await rm(target);
+
+    if (repo.path) {
+      await copyDir(repo.path, target);
+    } else if (repo.url) {
+      if (repo.hash) {
+        checkoutHash(repo.url, target, repo.hash);
+      } else {
+        await cloneBranch(repo.url, target, repo.branch);
+      }
+    }
+
+    // cleanup using root config
+    for (const cleanup of rootConfig.cleanup) {
+      await rm(join(target, cleanup));
+    }
+
+    // cleanup using repo config
+    for (const cleanup of repo.cleanup) {
+      await rm(join(target, cleanup));
+    }
+  }
+};
