@@ -4,6 +4,7 @@
     "jsr:@std/assert@1": "1.0.11",
     "jsr:@std/cli@^1.0.13": "1.0.13",
     "jsr:@std/internal@^1.0.5": "1.0.5",
+    "jsr:@std/path@*": "1.0.8",
     "jsr:@std/path@^1.0.8": "1.0.8",
     "jsr:@std/yaml@^1.0.6": "1.0.6",
     "npm:@types/cli-progress@^3.11.6": "3.11.6",

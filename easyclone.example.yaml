@@ -1,7 +1,9 @@
 moodle:
   url: https://packaging.moodle.org/moodle-4.5.0.tgz
   path: moodle
-  overwrite: false
+  overwrite: true
+  patch: true
+  cache: true
 strict: true
 force: true
 # cleanup:

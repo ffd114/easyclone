@@ -17,3 +17,6 @@ easyclone.yaml
 easyclone
 moodle
 plugins
+patch
+.cache
+
