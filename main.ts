@@ -2,6 +2,7 @@ import { parseArgs } from "@std/cli/parse-args";
 import * as yup from "yup";
 import { join } from "@std/path";
 import { parse } from "@std/yaml";
+import cliProgress from "cli-progress";
 import { replaceEnvVars } from "./utils.ts";
 
 const repositorySchema = yup
@@ -54,7 +55,11 @@ const repositorySchema = yup
     }
   );
 const schema = yup.object({
-  root: yup.string().required().default("."),
+  moodle: yup.object({
+    url: yup.string().required(),
+    path: yup.string().required().default("."),
+    overwrite: yup.boolean().default(false)
+  }).optional(),
   strict: yup.boolean().required().default(false),
   force: yup.boolean().required().default(false),
   cleanup: yup.array(yup.string().required()).default([".git", ".github"]),
@@ -173,11 +178,111 @@ const cloneBranch = async (url: string, target: string, branch?: string) => {
   }
 };
 
+const setupMoodle = async (rootConfig: RootConfig) => {
+  if (!rootConfig.moodle || !rootConfig.moodle.url) return;
+
+  const target = rootConfig.moodle.path;
+  const isTargetExists = await isDirExists(target);
+
+  if (isTargetExists) {
+    if (!rootConfig.moodle.overwrite) {
+      console.log(`Skipping moodle: ${target} already exists`);
+      return;
+    }
+
+    if (!rootConfig.force && !ask(`Target ${target} exists. Delete?`)) return;
+    await rm(target);
+  }
+
+  console.log(`Downloading Moodle from: ${rootConfig.moodle.url} | output ${target}`);
+  const res = await fetch(rootConfig.moodle.url);
+  if (!res.ok) {
+    throw new Error(`Failed to download Moodle: ${res.statusText}`);
+  }
+
+  const contentLength = res.headers.get("content-length");
+  const totalBytes = contentLength ? parseInt(contentLength, 10) : 0;
+  
+  const progressBar = new cliProgress.SingleBar({
+    format: totalBytes 
+      ? 'Downloading [{bar}] {percentage}% | {valueMB}MB / {totalMB}MB'
+      : 'Downloading | {valueMB}MB',
+    barCompleteChar: '\u2588',
+    barIncompleteChar: '\u2591',
+    hideCursor: true
+  });
+
+  progressBar.start(totalBytes || 100, 0, {
+    valueMB: "0.00",
+    totalMB: totalBytes ? (totalBytes / 1024 / 1024).toFixed(2) : "Unknown"
+  });
+
+  const tempFile = await Deno.makeTempFile();
+  const file = await Deno.open(tempFile, { write: true, create: true });
+  
+  if (res.body) {
+    let downloadedBytes = 0;
+    const progressStream = new TransformStream({
+      transform(chunk, controller) {
+        downloadedBytes += chunk.byteLength;
+        progressBar.update(totalBytes ? downloadedBytes : 0, {
+          valueMB: (downloadedBytes / 1024 / 1024).toFixed(2)
+        });
+        controller.enqueue(chunk);
+      },
+      flush() {
+        progressBar.stop();
+      }
+    });
+
+    await res.body.pipeThrough(progressStream).pipeTo(file.writable);
+  } else {
+    progressBar.stop();
+  }
+
+  console.log(`Extracting Moodle to ${target}`);
+  await Deno.mkdir(target, { recursive: true });
+
+  if (rootConfig.moodle.url.includes(".zip")) {
+    const tempDir = await Deno.makeTempDir();
+    const { code, stderr } = await new Deno.Command("unzip", {
+      args: ["-q", tempFile, "-d", tempDir],
+    }).output();
+    
+    if (code !== 0) {
+      console.error(new TextDecoder().decode(stderr));
+    }
+    
+    // Find the extracted folder (usually "moodle")
+    let sourceDir = tempDir;
+    for await (const entry of Deno.readDir(tempDir)) {
+      if (entry.isDirectory) {
+        sourceDir = join(tempDir, entry.name);
+        break;
+      }
+    }
+    
+    await _copyDir(sourceDir, target);
+    await rm(tempDir);
+  } else {
+    const { code, stderr } = await new Deno.Command("tar", {
+      args: ["-xf", tempFile, "--strip-components=1", "-C", target],
+    }).output();
+    
+    if (code !== 0) {
+      console.error(new TextDecoder().decode(stderr));
+    }
+  }
+
+  await rm(tempFile);
+};
+
 const processRepository = async (
   rootConfig: RootConfig,
   repo: RepositoryConfig
 ) => {
-  const target = join(rootConfig.root, repo.target);
+  const rootDir = rootConfig.moodle?.path ?? ".";
+  const target = join(rootDir, repo.target);
 
   const isTargetExists = await isDirExists(target);
 
@@ -188,7 +293,8 @@ const processRepository = async (
     return;
   }
 
-  const skip = repo.skip ?? rootConfig.skip;
+  // Skip with higher priority for repo config
+  const skip = repo.skip || rootConfig.skip;
 
   if (skip === true && repo.enable === true && isTargetExists) {
     console.log(`Skipping: ${target}`);
@@ -236,6 +342,8 @@ if (import.meta.main) {
 
   try {
     const data = await parseFile(args.config);
+
+    await setupMoodle(data);
 
     for (const repo of data.repositories) {
       await processRepository(data, repo);
