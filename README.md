@@ -1,30 +1,30 @@
 # easyclone
 
-This tools is provided to manage moodle plugins installation since installing manually is very cumbersome.
+This tool is provided to manage Moodle plugin installations, as installing them manually can be very cumbersome.
 
-Inspired by [silecs/moodle-gitplugins](https://github.com/silecs/moodle-gitplugins) but using Deno
+Inspired by [silecs/moodle-gitplugins](https://github.com/silecs/moodle-gitplugins) but written in Deno.
 
-Follow the example on `easyclone.example.yaml`
+Please refer to the example in `easyclone.example.yaml`.
 
 ## Config
 
-- `moodle` (optional): configuration for downloading and setting up Moodle.
-  - `url` (required if `moodle` is set): URL to download the Moodle distribution (zip or tgz).
-  - `path` (default: `.`): location where Moodle will be extracted and the base path for installing repository plugins.
-  - `overwrite` (default: `false`): if `true`, automatically deletes the existing Moodle folder and re-downloads it. If `false`, skips downloading if the directory already exists.
-- `strict` (default: `false`): if `true` delete `repositories.target` if `repositories.enable` is `true` and `repositories.target` directory is exist
-- `force` (default: `false`): if `true` it will not ask confirmation when deleting folder
-- `cleanup`(default: `[.git, .github]`): array of string which files or folders will be deleted after installing plugin
-- `skip` (default: `false`): if `repositories.enable` is `true` and `strict` is `false`, will `skip` installation
+- `moodle` (optional): Configuration for downloading and setting up Moodle.
+  - `url` (required if `moodle` is set): URL to download the Moodle distribution (`.zip` or `.tgz`).
+  - `path` (default: `.`): Location where Moodle will be extracted. This also serves as the base path for installing plugins.
+  - `overwrite` (default: `false`): If `true`, automatically deletes the existing Moodle folder and re-downloads it. If `false`, skips the download if the directory already exists.
+- `strict` (default: `false`): If `true`, deletes the existing `repositories.target` directory before installing, provided `repositories.enable` is `true`.
+- `force` (default: `false`): If `true`, deletes directories without asking for confirmation.
+- `cleanup` (default: `[.git, .github]`): An array of file or folder names to delete after a plugin is installed.
+- `skip` (default: `false`): If `true`, skips the installation of plugins globally (can be overridden per repository).
 - `repositories`:
-  - `url`: URL of the repo, can be `org/repo` for Github repositories or absolute URL `https://gitlab.com/org/repo.git`. **Mutually exclusive with `path`**
-  - `branch` (optional): specify branch or tag otherwise it will clone the latest. Only when `url` is specified
-  - `hash` (optional): specify hash. This will skip `branch` config if specified. Only when `url` is specified
-  - `path`: path to the plugin for local directory. **Mutually exclusive with `url`**
-  - `target`: location to install
-  - `enable` (default: `true`): enable installation of the plugin. See `skip` and `strict` for how to delete existing plugin
-  - `skip` (optional, boolean): same as parent config `skip` but takes higher priority if set
-  - `cleanup` (default: `[]`): Same as `cleanup` parent config but specific files or folders per plugin
+  - `url`: The URL of the repository. Can be `org/repo` for GitHub repositories or an absolute URL like `https://gitlab.com/org/repo.git`. **Mutually exclusive with `path`.**
+  - `branch` (optional): Specifies a branch or tag. If omitted, the default branch is cloned. Applicable only when `url` is specified.
+  - `hash` (optional): Specifies a commit hash. If provided, the `branch` setting is ignored. Applicable only when `url` is specified.
+  - `path`: Path to a local directory containing the plugin. **Mutually exclusive with `url`.**
+  - `target`: The destination path where the plugin should be installed.
+  - `enable` (default: `true`): Enables the installation of the plugin.
+  - `skip` (optional, boolean): Works the same as the global `skip` setting but overrides it for this specific plugin.
+  - `cleanup` (default: `[]`): Works the same as the global `cleanup` setting, but applies specifically to files or folders in this plugin.
 
 ### Environment Variables
 
@@ -40,7 +40,7 @@ repositories:
     target: local/test
 ```
 
-Credit to: [eNiiju/safe-yaml-env](https://github.com/eNiiju/safe-yaml-env/blob/25937192c97dd9a39788747fb7d2ee6a872c9bc7/src/common/utils.ts)
+Credit: [eNiiju/safe-yaml-env](https://github.com/eNiiju/safe-yaml-env/blob/25937192c97dd9a39788747fb7d2ee6a872c9bc7/src/common/utils.ts)
 
 ## Running
 
@@ -50,9 +50,9 @@ Credit to: [eNiiju/safe-yaml-env](https://github.com/eNiiju/safe-yaml-env/blob/2
 
 `deno compile --allow-run=git --allow-read --allow-write --allow-env main.ts`
 
-### Args:
+### Arguments:
 
-- `-p <path>, --path <path>` (optional): specify config file location. Default: `easyclone.yaml`
+- `-c <path>, --config <path>` (optional): Specifies the configuration file location. Default is `easyclone.yaml`.
 
 ## Requirements
 
