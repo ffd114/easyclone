@@ -26,5 +26,6 @@ if (import.meta.main) {
     } else {
       console.error(error);
     }
+    Deno.exit(1);
   }
 }

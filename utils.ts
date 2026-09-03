@@ -28,11 +28,6 @@ export function replaceEnvVars(data: string): string {
   });
 }
 
-export const ask = (message: string): boolean => {
-  const confirmed = prompt(`${message} (y/n)`);
-  return confirmed === "y";
-};
-
 export const rm = async (target: string) => {
   try {
     const targetInfo = await Deno.stat(target);

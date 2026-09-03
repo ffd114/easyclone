@@ -71,9 +71,7 @@ export const schema = yup.object({
   moodle: yup.object({
     url: yup.string().required(),
     path: yup.string().required().default("."),
-    overwrite: yup.boolean().default(false),
     patch: yup.boolean().default(true),
-    cache: yup.boolean().default(true),
     patchDir: yup.string().required().default("patch"),
     cleanup: yup.array(yup.string().required()).default([
       ".git",
@@ -85,8 +83,6 @@ export const schema = yup.object({
       "COPYING.txt",
     ]),
   }).optional(),
-  strict: yup.boolean().required().default(false),
-  force: yup.boolean().required().default(false),
   cleanup: yup.array(yup.string().required()).default([".git", ".github"]),
   skip: yup.boolean().required().default(false),
   sshKey: yup.string().optional(),

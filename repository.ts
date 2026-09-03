@@ -1,6 +1,6 @@
 import { join } from "@std/path";
 import { RootConfig, RepositoryConfig } from "./config.ts";
-import { rm, isDirExists, copyDir, ask } from "./utils.ts";
+import { rm, isDirExists, copyDir } from "./utils.ts";
 
 export const checkoutHash = (
   url: string,
@@ -83,13 +83,6 @@ export const processRepository = async (
 
   const isTargetExists = await isDirExists(target);
 
-  if (!repo.enable && rootConfig.strict && isTargetExists) {
-    if (!rootConfig.force && !ask(`Are you sure you want to delete ${target}?`))
-      return;
-    await rm(target);
-    return;
-  }
-
   // Skip with higher priority for repo config
   const skip = repo.skip || rootConfig.skip;
 
@@ -99,13 +92,6 @@ export const processRepository = async (
   }
 
   if (repo.enable) {
-    if (
-      isTargetExists &&
-      !rootConfig.force &&
-      !ask(`Target ${target} exists. Delete?`)
-    )
-      return;
-
     await rm(target);
 
     const sshKey = rootConfig.sshKey;

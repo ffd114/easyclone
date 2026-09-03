@@ -11,13 +11,10 @@ Please refer to the example in `easyclone.example.yaml`.
 - `moodle` (optional): Configuration for downloading and setting up Moodle.
   - `url` (required if `moodle` is set): URL to download the Moodle distribution (`.zip` or `.tgz`).
   - `path` (default: `.`): Location where Moodle will be extracted. This also serves as the base path for installing plugins.
-  - `overwrite` (default: `false`): If `true`, automatically deletes the existing Moodle folder and re-downloads it. If `false`, skips the download if the directory already exists.
   - `patch` (default: `true`): If `true`, applies any `.patch` files found inside the `patch` directory locally.
-  - `cache` (default: `true`): If `true`, caches the downloaded Moodle archive file inside a `.cache` folder to avoid network downloads on subsequent setup runs.
   - `patchDir` (default: `patch`): Directory containing `.patch` files to apply to Moodle.
   - `cleanup` (default: `[".git", ".github", ".gitattributes", ".gitignore", "README.txt", "readme_moodle.txt", "COPYING.txt"]`): An array of file or folder names to delete inside the extracted Moodle folder after installation.
-- `strict` (default: `false`): If `true`, deletes the existing `repositories.target` directory before installing, provided `repositories.enable` is `true`.
-- `force` (default: `false`): If `true`, deletes directories without asking for confirmation.
+  - Downloaded Moodle archives are always cached in `.cache/` (keyed by URL hash) and reused automatically on later runs — no config needed. Any existing Moodle folder or plugin target directory is always deleted and reinstalled from scratch.
 - `cleanup` (default: `[.git, .github]`): An array of file or folder names to delete after a plugin is installed.
 - `skip` (default: `false`): If `true`, skips the installation of plugins globally (can be overridden per repository).
 - `sshKey` (optional): Path to the private SSH key to use for git operations (e.g., `~/.ssh/id_rsa`).

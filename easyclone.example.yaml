@@ -1,9 +1,7 @@
 moodle:
   url: https://packaging.moodle.org/moodle-4.5.0.tgz
   path: moodle
-  overwrite: true
   patch: true
-  cache: true
   patchDir: patch
   cleanup:
     - .git
@@ -13,8 +11,6 @@ moodle:
     - README.txt
     - readme_moodle.txt
     - COPYING.txt
-strict: true
-force: true
 sshKey: ${SSH_KEY_PATH:-~/.ssh/id_rsa}
 # cleanup:
 #   - .git
