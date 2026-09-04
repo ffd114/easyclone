@@ -38,6 +38,8 @@ export const repositorySchema = yup
     hash: yup.string().optional(),
     skip: yup.boolean().optional(),
     enable: yup.boolean().required().default(true),
+    patch: yup.boolean().optional().default(false),
+    patchDir: yup.string().optional(),
     cleanup: yup.array().of(yup.string().required()).required().default([]),
   })
   .test(

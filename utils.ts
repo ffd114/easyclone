@@ -1,4 +1,4 @@
-import { join } from "@std/path";
+import { isAbsolute, join } from "@std/path";
 
 // Modified from https://github.com/eNiiju/safe-yaml-env/blob/25937192c97dd9a39788747fb7d2ee6a872c9bc7/src/common/utils.ts
 export function replaceEnvVars(data: string): string {
@@ -70,4 +70,38 @@ export const copyDir = async (src: string, dest: string) => {
   await Deno.mkdir(dest, { recursive: true });
 
   await _copyDir(src, dest);
+};
+
+export const applyPatches = async (patchDir: string, target: string) => {
+  try {
+    const dirInfo = await Deno.stat(patchDir);
+    if (!dirInfo.isDirectory) return;
+
+    const patches: string[] = [];
+    for await (const entry of Deno.readDir(patchDir)) {
+      if (entry.isFile && entry.name.endsWith(".patch")) {
+        patches.push(entry.name);
+      }
+    }
+
+    if (patches.length === 0) return;
+
+    patches.sort();
+    console.log(`Applying ${patches.length} patches to ${target}`);
+    for (const patch of patches) {
+      console.log(`Applying patch: ${patch}`);
+      const patchPath = isAbsolute(patchDir)
+        ? join(patchDir, patch)
+        : join(Deno.cwd(), patchDir, patch);
+      const { code, stderr } = await new Deno.Command("patch", {
+        args: ["-p1", "-d", target, "-i", patchPath],
+      }).output();
+
+      if (code !== 0) {
+        console.error(`Failed to apply ${patch}:`, new TextDecoder().decode(stderr));
+      }
+    }
+  } catch (_) {
+    // Patch directory does not exist or cannot be read, safely ignore
+  }
 };

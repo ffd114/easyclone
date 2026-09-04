@@ -1,7 +1,7 @@
-import { isAbsolute, join } from "@std/path";
+import { join } from "@std/path";
 import cliProgress from "cli-progress";
 import { RootConfig } from "./config.ts";
-import { rm, _copyDir } from "./utils.ts";
+import { rm, _copyDir, applyPatches } from "./utils.ts";
 
 export const setupMoodle = async (rootConfig: RootConfig) => {
   if (!rootConfig.moodle || !rootConfig.moodle.url) return;
@@ -114,38 +114,7 @@ export const setupMoodle = async (rootConfig: RootConfig) => {
   }
 
   if (rootConfig.moodle.patch) {
-    const patchDir = rootConfig.moodle.patchDir;
-    try {
-      const dirInfo = await Deno.stat(patchDir);
-      if (dirInfo.isDirectory) {
-        const patches: string[] = [];
-        for await (const entry of Deno.readDir(patchDir)) {
-          if (entry.isFile && entry.name.endsWith(".patch")) {
-            patches.push(entry.name);
-          }
-        }
-
-        if (patches.length > 0) {
-          patches.sort();
-          console.log(`Applying ${patches.length} patches to ${target}`);
-          for (const patch of patches) {
-            console.log(`Applying patch: ${patch}`);
-            const patchPath = isAbsolute(patchDir)
-              ? join(patchDir, patch)
-              : join(Deno.cwd(), patchDir, patch);
-            const { code, stderr } = await new Deno.Command("patch", {
-              args: ["-p1", "-d", target, "-i", patchPath],
-            }).output();
-
-            if (code !== 0) {
-              console.error(`Failed to apply ${patch}:`, new TextDecoder().decode(stderr));
-            }
-          }
-        }
-      }
-    } catch (_) {
-      // Patch directory does not exist or cannot be read, safely ignore
-    }
+    await applyPatches(rootConfig.moodle.patchDir, target);
   }
 
   if (rootConfig.moodle.cleanup) {

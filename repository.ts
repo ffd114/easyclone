@@ -1,6 +1,6 @@
 import { join } from "@std/path";
 import { RootConfig, RepositoryConfig } from "./config.ts";
-import { rm, isDirExists, copyDir } from "./utils.ts";
+import { rm, isDirExists, copyDir, applyPatches } from "./utils.ts";
 
 export const checkoutHash = (
   url: string,
@@ -104,6 +104,11 @@ export const processRepository = async (
       } else {
         await cloneBranch(repo.url, target, repo.branch, sshKey);
       }
+    }
+
+    if (repo.patch) {
+      const patchDir = repo.patchDir ?? join("patch", repo.target);
+      await applyPatches(patchDir, target);
     }
 
     // cleanup using root config
