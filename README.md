@@ -53,7 +53,7 @@ Credit: [eNiiju/safe-yaml-env](https://github.com/eNiiju/safe-yaml-env/blob/2593
 
 ## Compile
 
-`deno compile --allow-run=git --allow-read --allow-write --allow-env main.ts`
+`deno compile --allow-run=git,unzip,tar,patch --allow-read --allow-write --allow-env --allow-net main.ts`
 
 ### Arguments:
 
