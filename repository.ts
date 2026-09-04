@@ -26,7 +26,7 @@ export const checkoutHash = async (
     }).output();
 
     if (code !== 0) {
-      throw new Error(`git ${args.join(" ")} failed for ${url}: ${new TextDecoder().decode(stderr)}`);
+      throw new Error(`Failed: git ${args.join(" ")} | ${new TextDecoder().decode(stderr)}`);
     }
   };
 
@@ -102,7 +102,7 @@ export const processRepository = async (
     if (repo.patch) {
       const patchDir = join(target, "patch");
       if (!(await isDirExists(patchDir))) {
-        throw new Error(`patch is enabled for ${target} but no patch directory was found at ${patchDir}`);
+        throw new Error(`Missing patch directory: ${patchDir}`);
       }
 
       await applyPatches(patchDir, rootDir);

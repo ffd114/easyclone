@@ -102,7 +102,7 @@ export const applyPatches = async (patchDir: string, target: string) => {
     }).output();
 
     if (code !== 0) {
-      throw new Error(`Failed to apply patch ${patch} to ${target}: ${new TextDecoder().decode(stderr)}`);
+      throw new Error(`Failed: apply patch ${patch} | ${new TextDecoder().decode(stderr)}`);
     }
   }
 };
