@@ -2,7 +2,7 @@ import { join } from "@std/path";
 import { RootConfig, RepositoryConfig } from "./config.ts";
 import { rm, isDirExists, copyDir, applyPatches } from "./utils.ts";
 
-export const checkoutHash = (
+export const checkoutHash = async (
   url: string,
   target: string,
   hash: string,
@@ -11,36 +11,29 @@ export const checkoutHash = (
   // References: https://graphite.dev/guides/git-clone-specific-commit
   console.log(`Fetching: ${url} hash ${hash} | output ${target}`);
 
-  Deno.mkdirSync(target, { recursive: true });
+  await Deno.mkdir(target, { recursive: true });
 
   const env = {
     ...Deno.env.toObject(),
     ...(sshKey ? { GIT_SSH_COMMAND: `ssh -i ${sshKey} -o StrictHostKeyChecking=no` } : {}),
   };
 
-  new Deno.Command("git", {
-    args: ["init"],
-    cwd: target,
-    env,
-  }).outputSync();
+  const run = async (args: string[]) => {
+    const { code, stderr } = await new Deno.Command("git", {
+      args,
+      cwd: target,
+      env,
+    }).output();
 
-  new Deno.Command("git", {
-    args: ["remote", "add", "origin", url],
-    cwd: target,
-    env,
-  }).outputSync();
+    if (code !== 0) {
+      throw new Error(`git ${args.join(" ")} failed for ${url}: ${new TextDecoder().decode(stderr)}`);
+    }
+  };
 
-  new Deno.Command("git", {
-    args: ["fetch", "--depth=1", "origin", hash],
-    cwd: target,
-    env,
-  }).outputSync();
-
-  new Deno.Command("git", {
-    args: ["checkout", "FETCH_HEAD"],
-    cwd: target,
-    env,
-  }).outputSync();
+  await run(["init"]);
+  await run(["remote", "add", "origin", url]);
+  await run(["fetch", "--depth=1", "origin", hash]);
+  await run(["checkout", "FETCH_HEAD"]);
 };
 
 export const cloneBranch = async (
@@ -100,7 +93,7 @@ export const processRepository = async (
       await copyDir(repo.path, target);
     } else if (repo.url) {
       if (repo.hash) {
-        checkoutHash(repo.url, target, repo.hash, sshKey);
+        await checkoutHash(repo.url, target, repo.hash, sshKey);
       } else {
         await cloneBranch(repo.url, target, repo.branch, sshKey);
       }
