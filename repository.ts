@@ -107,14 +107,13 @@ export const processRepository = async (
     }
 
     if (repo.patch) {
-      const patchDir = repo.patchDir ?? join(target, "patch");
-      await applyPatches(patchDir, rootDir);
-
-      // Only remove the default patch/ folder shipped inside the plugin itself —
-      // an explicit patchDir may point outside the plugin and shouldn't be deleted.
-      if (!repo.patchDir) {
-        await rm(patchDir);
+      const patchDir = join(target, "patch");
+      if (!(await isDirExists(patchDir))) {
+        throw new Error(`patch is enabled for ${target} but no patch directory was found at ${patchDir}`);
       }
+
+      await applyPatches(patchDir, rootDir);
+      await rm(patchDir);
     }
 
     // cleanup using root config
