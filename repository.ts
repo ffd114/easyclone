@@ -102,7 +102,7 @@ export const processRepository = async (
     if (repo.patch) {
       const patchDir = join(target, "patch");
       if (!(await isDirExists(patchDir))) {
-        throw new Error(`Missing patch directory: ${patchDir}`);
+        throw new Error(`Missing: ${patchDir}`);
       }
 
       await applyPatches(patchDir, rootDir);

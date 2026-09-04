@@ -91,9 +91,9 @@ export const applyPatches = async (patchDir: string, target: string) => {
   if (patches.length === 0) return;
 
   patches.sort();
-  console.log(`Applying ${patches.length} patches to ${target}`);
+  console.log(`Patching: ${target} | ${patches.length} patch${patches.length === 1 ? "" : "es"}`);
   for (const patch of patches) {
-    console.log(`Applying patch: ${patch}`);
+    console.log(`Patching: ${patch} | output ${target}`);
     const patchPath = isAbsolute(patchDir)
       ? join(patchDir, patch)
       : join(Deno.cwd(), patchDir, patch);
@@ -102,7 +102,7 @@ export const applyPatches = async (patchDir: string, target: string) => {
     }).output();
 
     if (code !== 0) {
-      throw new Error(`Failed: apply patch ${patch} | ${new TextDecoder().decode(stderr)}`);
+      throw new Error(`Failed: patch ${patch} | ${new TextDecoder().decode(stderr)}`);
     }
   }
 };
