@@ -107,8 +107,8 @@ export const processRepository = async (
     }
 
     if (repo.patch) {
-      const patchDir = repo.patchDir ?? join("patch", repo.target);
-      await applyPatches(patchDir, target);
+      const patchDir = repo.patchDir ?? join(target, "patch");
+      await applyPatches(patchDir, rootDir);
     }
 
     // cleanup using root config

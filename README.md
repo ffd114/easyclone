@@ -28,8 +28,8 @@ Please refer to the example in `easyclone.example.yaml`.
   - `target`: The destination path where the plugin should be installed.
   - `enable` (default: `true`): Enables the installation of the plugin.
   - `skip` (optional, boolean): Works the same as the global `skip` setting but overrides it for this specific plugin.
-  - `patch` (default: `false`): If `true`, applies any `.patch` files found inside `patchDir` to this plugin's installed directory after cloning/copying.
-  - `patchDir` (default: `patch/<target>`): Directory containing `.patch` files to apply to this plugin. Defaults to a subfolder of the root `patch` directory named after the plugin's `target`, e.g. `target: mod/board` looks for patches in `patch/mod/board`.
+  - `patch` (default: `false`): If `true`, applies any `.patch` files found inside `patchDir` to the Moodle core installation (`moodle.path`) after this plugin is cloned/copied — for plugins that ship core patches alongside their own code (e.g. adding a hook Moodle core doesn't expose yet). This is different from `moodle.patch`, which applies patches to Moodle core from a directory local to the easyclone config, not from inside a plugin.
+  - `patchDir` (default: `<target>/patch`): Directory to look for `.patch` files in. Defaults to a `patch` folder inside the plugin's own installed directory, e.g. `target: question/type/pedu_interactive` looks for patches in `question/type/pedu_interactive/patch` (a convention many plugin repos already ship, such as [pedu-dev/iomiga-qtype_pedu_interactive](https://github.com/pedu-dev/iomiga-qtype_pedu_interactive)).
   - `cleanup` (default: `[]`): Works the same as the global `cleanup` setting, but applies specifically to files or folders in this plugin.
 
 ### Environment Variables
