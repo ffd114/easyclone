@@ -4,6 +4,8 @@ This tool is provided to manage Moodle plugin installations, as installing them 
 
 Inspired by [silecs/moodle-gitplugins](https://github.com/silecs/moodle-gitplugins) but written in Deno.
 
+This tool is designed to run inside a container, where the filesystem is fresh on every run. Because of that, it only ever installs, never reconciles: it doesn't prompt for confirmation, doesn't support a `force`/`strict` mode to manage a persistent local checkout across runs, and doesn't let you opt out of overwriting an existing target. Any existing Moodle folder or plugin directory is always deleted and reinstalled from scratch, and the downloaded Moodle archive is always cached in `.cache/` for faster rebuilds. This kept the config surface small — see below for what's left.
+
 Please refer to the example in `easyclone.example.yaml`.
 
 ## Config
@@ -14,7 +16,6 @@ Please refer to the example in `easyclone.example.yaml`.
   - `patch` (default: `true`): If `true`, applies any `.patch` files found inside the `patch` directory locally.
   - `patchDir` (default: `patch`): Directory containing `.patch` files to apply to Moodle.
   - `cleanup` (default: `[".git", ".github", ".gitattributes", ".gitignore", "README.txt", "readme_moodle.txt", "COPYING.txt"]`): An array of file or folder names to delete inside the extracted Moodle folder after installation.
-  - Downloaded Moodle archives are always cached in `.cache/` (keyed by URL hash) and reused automatically on later runs — no config needed. Any existing Moodle folder or plugin target directory is always deleted and reinstalled from scratch.
 - `cleanup` (default: `[.git, .github]`): An array of file or folder names to delete after a plugin is installed.
 - `skip` (default: `false`): If `true`, skips the installation of plugins globally (can be overridden per repository).
 - `sshKey` (optional): Path to the private SSH key to use for git operations (e.g., `~/.ssh/id_rsa`).
