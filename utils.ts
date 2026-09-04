@@ -73,35 +73,36 @@ export const copyDir = async (src: string, dest: string) => {
 };
 
 export const applyPatches = async (patchDir: string, target: string) => {
+  const patches: string[] = [];
   try {
     const dirInfo = await Deno.stat(patchDir);
     if (!dirInfo.isDirectory) return;
 
-    const patches: string[] = [];
     for await (const entry of Deno.readDir(patchDir)) {
       if (entry.isFile && entry.name.endsWith(".patch")) {
         patches.push(entry.name);
       }
     }
-
-    if (patches.length === 0) return;
-
-    patches.sort();
-    console.log(`Applying ${patches.length} patches to ${target}`);
-    for (const patch of patches) {
-      console.log(`Applying patch: ${patch}`);
-      const patchPath = isAbsolute(patchDir)
-        ? join(patchDir, patch)
-        : join(Deno.cwd(), patchDir, patch);
-      const { code, stderr } = await new Deno.Command("patch", {
-        args: ["-p1", "-d", target, "-i", patchPath],
-      }).output();
-
-      if (code !== 0) {
-        console.error(`Failed to apply ${patch}:`, new TextDecoder().decode(stderr));
-      }
-    }
   } catch (_) {
     // Patch directory does not exist or cannot be read, safely ignore
+    return;
+  }
+
+  if (patches.length === 0) return;
+
+  patches.sort();
+  console.log(`Applying ${patches.length} patches to ${target}`);
+  for (const patch of patches) {
+    console.log(`Applying patch: ${patch}`);
+    const patchPath = isAbsolute(patchDir)
+      ? join(patchDir, patch)
+      : join(Deno.cwd(), patchDir, patch);
+    const { code, stderr } = await new Deno.Command("patch", {
+      args: ["-p1", "-d", target, "-i", patchPath],
+    }).output();
+
+    if (code !== 0) {
+      throw new Error(`Failed to apply patch ${patch} to ${target}: ${new TextDecoder().decode(stderr)}`);
+    }
   }
 };
