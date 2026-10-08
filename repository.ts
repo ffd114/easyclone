@@ -63,7 +63,7 @@ export const cloneBranch = async (
   const { code, stderr } = await git.output();
 
   if (code !== 0) {
-    console.error(new TextDecoder().decode(stderr));
+    throw new Error(`Failed: git ${args.join(" ")} | ${new TextDecoder().decode(stderr)}`);
   }
 };
 
