@@ -1,4 +1,4 @@
-import { join } from "@std/path";
+import { dirname, join } from "@std/path";
 import { RootConfig, RepositoryConfig } from "./config.ts";
 import { rm, isDirExists, copyDir, applyPatches } from "./utils.ts";
 
@@ -72,51 +72,96 @@ export const processRepository = async (
   repo: RepositoryConfig
 ) => {
   const rootDir = rootConfig.moodle?.path ?? ".";
-  const target = join(rootDir, repo.target);
 
-  const isTargetExists = await isDirExists(target);
+  // Without subdirs, the whole source is installed into a single target
+  const installs = (repo.subdirs ?? [{ subdir: undefined, target: repo.target! }]).map(
+    ({ subdir, target }) => ({ subdir, target: join(rootDir, target) })
+  );
+
+  const isTargetExists = (
+    await Promise.all(installs.map(({ target }) => isDirExists(target)))
+  ).every(Boolean);
 
   // Skip with higher priority for repo config
   const skip = repo.skip || rootConfig.skip;
 
   if (skip === true && repo.enable === true && isTargetExists) {
-    console.log(`Skipping: ${target}`);
+    for (const { target } of installs) {
+      console.log(`Skipping: ${target}`);
+    }
     return;
   }
 
   if (repo.enable) {
-    await rm(target);
+    for (const { target } of installs) {
+      await rm(target);
+    }
 
     const sshKey = rootConfig.sshKey;
 
     if (repo.path) {
-      await copyDir(repo.path, target);
-    } else if (repo.url) {
+      for (const { subdir, target } of installs) {
+        const source = subdir ? join(repo.path, subdir) : repo.path;
+        if (!(await isDirExists(source))) {
+          throw new Error(`Missing: ${source}`);
+        }
+
+        await copyDir(source, target);
+      }
+    } else if (repo.url && !repo.subdirs) {
+      const { target } = installs[0];
       if (repo.hash) {
         await checkoutHash(repo.url, target, repo.hash, sshKey);
       } else {
         await cloneBranch(repo.url, target, repo.branch, sshKey);
       }
+    } else if (repo.url) {
+      // Clone once into a staging dir, then move each subdir into its target
+      await Deno.mkdir(rootDir, { recursive: true });
+      const cloneTarget = await Deno.makeTempDir({ dir: rootDir, prefix: ".easyclone-" });
+
+      try {
+        if (repo.hash) {
+          await checkoutHash(repo.url, cloneTarget, repo.hash, sshKey);
+        } else {
+          await cloneBranch(repo.url, cloneTarget, repo.branch, sshKey);
+        }
+
+        for (const { subdir, target } of installs) {
+          const source = join(cloneTarget, subdir!);
+          if (!(await isDirExists(source))) {
+            throw new Error(`Missing: ${subdir} | ${repo.url}`);
+          }
+
+          console.log(`Moving: ${source} | output ${target}`);
+          await Deno.mkdir(dirname(target), { recursive: true });
+          await Deno.rename(source, target);
+        }
+      } finally {
+        await rm(cloneTarget);
+      }
     }
 
-    if (repo.patch) {
-      const patchDir = join(target, "patch");
-      if (!(await isDirExists(patchDir))) {
-        throw new Error(`Missing: ${patchDir}`);
+    for (const { target } of installs) {
+      if (repo.patch) {
+        const patchDir = join(target, "patch");
+        if (!(await isDirExists(patchDir))) {
+          throw new Error(`Missing: ${patchDir}`);
+        }
+
+        await applyPatches(patchDir, rootDir);
+        await rm(patchDir);
       }
 
-      await applyPatches(patchDir, rootDir);
-      await rm(patchDir);
-    }
+      // cleanup using root config
+      for (const cleanup of rootConfig.cleanup) {
+        await rm(join(target, cleanup));
+      }
 
-    // cleanup using root config
-    for (const cleanup of rootConfig.cleanup) {
-      await rm(join(target, cleanup));
-    }
-
-    // cleanup using repo config
-    for (const cleanup of repo.cleanup) {
-      await rm(join(target, cleanup));
+      // cleanup using repo config
+      for (const cleanup of repo.cleanup) {
+        await rm(join(target, cleanup));
+      }
     }
   }
 };

@@ -25,7 +25,16 @@ Please refer to the example in `easyclone.example.yaml`.
   - `branch` (optional): Specifies a branch or tag. If omitted, the default branch is cloned. Applicable only when `url` is specified. **Mutually exclusive with `hash`.**
   - `hash` (optional): Specifies a commit hash. Applicable only when `url` is specified. **Mutually exclusive with `branch`.**
   - `path`: Path to a local directory containing the plugin. **Mutually exclusive with `url`.**
-  - `target`: The destination path where the plugin should be installed.
+  - `target`: The destination path where the plugin should be installed. **Mutually exclusive with `subdirs`.**
+  - `subdirs` (optional): Installs only specific subdirectories of the repository (or local `path`) instead of the whole thing — for repositories that ship one or more plugins in subfolders (e.g. a monorepo). Each entry has a `subdir` (relative to the repository root) and its own `target`; the repository is cloned once and the rest is discarded. The run fails if a subdirectory doesn't exist. `patch` and `cleanup` apply to each entry's `target`. **Mutually exclusive with `target`.**
+    ```yaml
+    - url: org/monorepo
+      subdirs:
+        - subdir: plugins/local_example
+          target: local/example
+        - subdir: plugins/mod_example
+          target: mod/example
+    ```
   - `enable` (default: `true`): Enables the installation of the plugin.
   - `skip` (optional, boolean): Works the same as the global `skip` setting but overrides it for this specific plugin.
   - `patch` (default: `false`): If `true`, applies any `.patch` files found inside this plugin's own `patch` folder (`<target>/patch`, not configurable) to the Moodle core installation (`moodle.path`) after this plugin is cloned/copied — for plugins that ship core patches alongside their own code (e.g. adding a hook Moodle core doesn't expose yet, such as [pedu-dev/iomiga-qtype_pedu_interactive](https://github.com/pedu-dev/iomiga-qtype_pedu_interactive)). This is different from `moodle.patch`, which applies patches to Moodle core from a directory local to the easyclone config, not from inside a plugin. The plugin's `patch` folder is required if this is `true` (the run fails if it's missing) and is deleted from the installed plugin after patches are applied.

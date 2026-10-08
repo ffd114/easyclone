@@ -33,7 +33,17 @@ export const repositorySchema = yup
       })
       .optional(),
     path: yup.string().optional(),
-    target: yup.string().required(),
+    target: yup.string().optional(),
+    subdirs: yup
+      .array()
+      .of(
+        yup.object({
+          subdir: yup.string().required(),
+          target: yup.string().required(),
+        })
+      )
+      .min(1)
+      .optional(),
     branch: yup.string().optional(),
     hash: yup.string().optional(),
     skip: yup.boolean().optional(),
@@ -45,22 +55,30 @@ export const repositorySchema = yup
     "url-path",
     "Either url or path must be provided",
     function (value, ctx) {
+      const target = value.target ?? value.subdirs?.map((s) => s.target).join(", ");
+
       if (!value.url && !value.path) {
         return ctx.createError({
-          params: { target: value.target },
+          params: { target },
           message: "Either url or path must be provided. Target: (${target})",
         });
       }
 
       if (value.url && value.path) {
         return ctx.createError({
-          message: `Either url or path must be provided, not both. Target: (${value.target})`,
+          message: `Either url or path must be provided, not both. Target: (${target})`,
         });
       }
 
       if (value.hash && value.branch) {
         return ctx.createError({
-          message: `Either hash or branch must be provided, not both. Target: (${value.target})`,
+          message: `Either hash or branch must be provided, not both. Target: (${target})`,
+        });
+      }
+
+      if (!value.target === !value.subdirs) {
+        return ctx.createError({
+          message: `Either target or subdirs must be provided, not both. Source: (${value.url ?? value.path})`,
         });
       }
 

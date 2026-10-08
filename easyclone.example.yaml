@@ -21,6 +21,12 @@ repositories:
   # - url: pedu-dev/iomiga-omiga
   #   target: local/omiga
   #   isPrivate: true
+  # - url: org/monorepo
+  #   subdirs:
+  #     - subdir: plugins/local_example
+  #       target: local/example
+  #     - subdir: plugins/mod_example
+  #       target: mod/example
   - url: vtos/moodle-mod_adaptivequiz
     target: mod/adaptivequiz
     hash: 7e84b4c1606b89b83ec0b57a595770116c253a3b
