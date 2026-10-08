@@ -101,7 +101,7 @@ export const schema = yup.object({
       "readme_moodle.txt",
       "COPYING.txt",
     ]),
-  }).optional(),
+  }).default(undefined).optional(),
   cleanup: yup.array(yup.string().required()).default([".git", ".github"]),
   skip: yup.boolean().required().default(false),
   sshKey: yup.string().optional(),
