@@ -89,7 +89,7 @@ export const repositorySchema = yup
 export const schema = yup.object({
   moodle: yup.object({
     url: yup.string().required(),
-    path: yup.string().required().default("."),
+    path: yup.string().required(),
     patch: yup.boolean().default(true),
     patchDir: yup.string().required().default("patch"),
     cleanup: yup.array(yup.string().required()).default([

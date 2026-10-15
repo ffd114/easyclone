@@ -120,12 +120,12 @@ The current implementation uses yup in its default (non-strict) mode, so:
 | Key | Type | Required | Default | Notes |
 |---|---|---|---|---|
 | `url` | string | **yes** (if `moodle` present) | — | `.zip`, `.tgz` or `.tar.gz` distribution URL |
-| `path` | string | yes (non-empty) | `"."` | Extraction dir **and** base dir for plugin targets. ⚠ See §11 Q1. |
+| `path` | string | **yes** (if `moodle` present) | — | Extraction dir **and** base dir for plugin targets. Must not be cwd or an ancestor of it (§8.1). |
 | `patch` | bool | no | `true` | Apply `*.patch` from `patchDir` to Moodle |
 | `patchDir` | string | yes (non-empty) | `"patch"` | Relative to `cwd`. Missing dir = silently no patches. |
 | `cleanup` | list of string | no | `[".git", ".github", ".gitattributes", ".gitignore", "README.txt", "readme_moodle.txt", "COPYING.txt"]` | Names/relative paths deleted under `moodle.path` |
 
-Error if `moodle` is present without `url`: `moodle.url is a required field`.
+Error if `moodle` is present without `url`: `moodle.url is a required field`. Without `path`: `moodle.path is a required field`.
 
 ### 5.6 Repository schema
 
@@ -178,7 +178,7 @@ Runs only if `moodle` is present and `moodle.url` is non-empty.
 
 ```
 target = moodle.path
-rm(target)                                        # §8.1, ⚠ §11 Q1
+rm(target)                                        # §8.1
 cacheDir = <cwd>/.cache ; mkdir -p cacheDir
 
 key  = lowercase hex SHA-256 of the UTF-8 url string (after env substitution)
@@ -325,9 +325,10 @@ The server must allow fetching by SHA, and in practice a **full** SHA is require
 ## 8. Shared primitives
 
 ### 8.1 `rm(path)`: best-effort delete
+- **Guard (fatal, checked first):** if `path` exists and its real path (symlinks resolved) is the real cwd or an ancestor of it, throw `Refusing to delete: <path> | contains the working directory`. This applies to every caller (Moodle path, plugin targets, cleanup entries).
 - `stat(path)` (follows symlinks). If it is a dir or a regular file: log `Deleting: <path>` (to stdout) and remove recursively.
 - **Every error is swallowed**: not-found, permission denied, partial failure. A broken symlink does not stat, so it is left alone.
-- Verified: `rm(".")` deletes **every entry inside the cwd**. Only removing `.` itself fails, and that error is swallowed.
+- Without the guard, `rm(".")` would delete every entry inside the cwd (verified on v0.1.1), which is why the guard exists.
 
 ### 8.2 `copyDir(src, dest)`
 - Log `Copying : <src> | output <dest>` (note the space before the colon).
@@ -387,6 +388,7 @@ Failed to download Moodle: <statusText>
 Missing: <source>                                    (local path / subdir of local path)
 Missing: <subdir> | <url>                            (subdir of cloned repo)
 Missing: <target>/patch                              (repo patch: true)
+Refusing to delete: <path> | contains the working directory
 Failed: git <args> | <stderr>
 Failed: patch <name> | <stderr>
 <any other IO error, e.g. rename/mkdir/copy failure>
@@ -413,7 +415,7 @@ The repo's `.gitignore` ignores `easyclone.yaml`, `easyclone` (compiled binary),
 
 | # | Behavior today | Severity | Suggested rewrite behavior |
 |---|---|---|---|
-| Q1 | `moodle` set with `path` omitted → default `"."` → `rm(".")` **wipes the entire cwd**, including the config, `patch/` and plugin sources. (Verified.) | **High** | Refuse to delete `.`, `cwd`, `/`, or any ancestor of cwd. Or make `path` required. |
+| Q1 | **Fixed.** In v0.1.1, `moodle` set with `path` omitted → default `"."` → `rm(".")` wiped the entire cwd. Now `moodle.path` is required and `rm` refuses cwd or its ancestors (§8.1). | — | Keep the fix |
 | Q2 | `skip = repo.skip OR root.skip`, so per-repo `skip: false` **cannot** override root `skip: true`. The README says it overrides. | Medium | `effective = repo.skip if set else root.skip` |
 | Q3 | `enable: false` is silent. | Low | Log `Disabled: <target>` |
 | Q4 | Env substitution runs on comments, so an unset var in a commented-out line throws. Values are inserted raw (no YAML escaping). | Medium | Substitute after YAML parsing, on string scalars only. Or keep it and document it. |
@@ -455,6 +457,7 @@ Use a temp `cwd` per test, local bare git repos (`file://` URLs) and a local HTT
 13. `patch/0002-b.patch` and `patch/0001-a.patch` apply in order 0001, 0002. A non-`.patch` file is ignored. A missing `patch/` dir is OK.
 14. A failing patch → exit 1, `Failed: patch <name> | …`.
 15. `moodle.cleanup` entries are removed. Missing entries are silently ignored.
+15a. `moodle.path: .` (or `..`, or an absolute ancestor of cwd) → exit 1, `Refusing to delete: …`, nothing in cwd deleted. A plugin `target: .` without `moodle` behaves the same.
 16. Without a `moodle` section, plugins install relative to `cwd`.
 
 **Repositories**

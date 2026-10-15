@@ -12,7 +12,7 @@ Please refer to the example in `easyclone.example.yaml`.
 
 - `moodle` (optional): Configuration for downloading and setting up Moodle.
   - `url` (required if `moodle` is set): URL to download the Moodle distribution (`.zip` or `.tgz`).
-  - `path` (default: `.`): Location where Moodle will be extracted. This also serves as the base path for installing plugins.
+  - `path` (required if `moodle` is set): Location where Moodle will be extracted. This also serves as the base path for installing plugins. It is deleted before extraction, so it can't be the working directory or one of its parents (the run fails instead).
   - `patch` (default: `true`): If `true`, applies any `.patch` files found inside the `patch` directory locally.
   - `patchDir` (default: `patch`): Directory containing `.patch` files to apply to Moodle.
   - `cleanup` (default: `[".git", ".github", ".gitattributes", ".gitignore", "README.txt", "readme_moodle.txt", "COPYING.txt"]`): An array of file or folder names to delete inside the extracted Moodle folder after installation.

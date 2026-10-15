@@ -1,4 +1,4 @@
-import { isAbsolute, join } from "@std/path";
+import { isAbsolute, join, relative, SEPARATOR } from "@std/path";
 
 // Modified from https://github.com/eNiiju/safe-yaml-env/blob/25937192c97dd9a39788747fb7d2ee6a872c9bc7/src/common/utils.ts
 export function replaceEnvVars(data: string): string {
@@ -28,7 +28,21 @@ export function replaceEnvVars(data: string): string {
   });
 }
 
+// True if target is the working directory or one of its ancestors
+const containsCwd = async (target: string) => {
+  try {
+    const rel = relative(await Deno.realPath(target), await Deno.realPath(Deno.cwd()));
+    return rel === "" || (rel !== ".." && !rel.startsWith(`..${SEPARATOR}`) && !isAbsolute(rel));
+  } catch (_) {
+    return false;
+  }
+};
+
 export const rm = async (target: string) => {
+  if (await containsCwd(target)) {
+    throw new Error(`Refusing to delete: ${target} | contains the working directory`);
+  }
+
   try {
     const targetInfo = await Deno.stat(target);
 
