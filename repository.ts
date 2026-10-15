@@ -83,7 +83,7 @@ export const processRepository = async (
   ).every(Boolean);
 
   // Skip with higher priority for repo config
-  const skip = repo.skip || rootConfig.skip;
+  const skip = repo.skip ?? rootConfig.skip;
 
   if (skip === true && repo.enable === true && isTargetExists) {
     for (const { target } of installs) {

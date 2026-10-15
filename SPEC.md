@@ -139,7 +139,7 @@ Error if `moodle` is present without `url`: `moodle.url is a required field`. Wi
 | `target` | string | — | Install dir, relative to the plugin root (§7.1). XOR with `subdirs`. |
 | `subdirs` | list of `{subdir: string (req), target: string (req)}` | — | At least one item. XOR with `target`. |
 | `enable` | bool | `true` | `false` = the entry is a complete no-op (§7.2) |
-| `skip` | bool | unset | Per-repo skip (combined with root `skip`, §7.2) |
+| `skip` | bool | unset | Per-repo skip; when set, overrides root `skip` (§7.2) |
 | `patch` | bool | `false` | Apply `<target>/patch/*.patch` to the plugin root (§7.5) |
 | `cleanup` | list of string | `[]` | Extra names deleted in each target, after root `cleanup` |
 
@@ -236,7 +236,7 @@ installs = repo.subdirs ? [{subdir, target: join(rootDir, t)} for each]
 
 ```
 allExist = every install.target exists and is a directory
-skip     = repo.skip OR root.skip          # ⚠ §11 Q2: logical OR, not override
+skip     = repo.skip if set else root.skip   # repo overrides root, both ways
 
 if skip and repo.enable and allExist:
     for each install: log "Skipping: <target>"
@@ -416,7 +416,7 @@ The repo's `.gitignore` ignores `easyclone.yaml`, `easyclone` (compiled binary),
 | # | Behavior today | Severity | Suggested rewrite behavior |
 |---|---|---|---|
 | Q1 | **Fixed.** In v0.1.1, `moodle` set with `path` omitted → default `"."` → `rm(".")` wiped the entire cwd. Now `moodle.path` is required and `rm` refuses cwd or its ancestors (§8.1). | — | Keep the fix |
-| Q2 | `skip = repo.skip OR root.skip`, so per-repo `skip: false` **cannot** override root `skip: true`. The README says it overrides. | Medium | `effective = repo.skip if set else root.skip` |
+| Q2 | **Fixed.** In v0.1.1, `skip = repo.skip OR root.skip`, so per-repo `skip: false` couldn't override root `skip: true`. Now `effective = repo.skip if set else root.skip`. | — | Keep the fix |
 | Q3 | `enable: false` is silent. | Low | Log `Disabled: <target>` |
 | Q4 | Env substitution runs on comments, so an unset var in a commented-out line throws. Values are inserted raw (no YAML escaping). | Medium | Substitute after YAML parsing, on string scalars only. Or keep it and document it. |
 | Q5 | An interrupted download leaves a corrupt archive in the cache that is reused forever. | Medium | Download to `<file>.part`, then rename atomically. Optionally support a checksum. |
@@ -469,7 +469,7 @@ Use a temp `cwd` per test, local bare git repos (`file://` URLs) and a local HTT
 22. `subdirs` from a local `path` → copies each subdir.
 23. `enable: false` → target untouched, no output.
 24. `skip: true` + existing target → `Skipping:` and no change. `skip: true` + missing target → installs.
-25. Root `skip: true`, repo `skip: false`, existing target → **skipped** today (Q2). Decide whether to keep this.
+25. Root `skip: true`, repo `skip: false`, existing target → **reinstalled** (repo overrides root). Root `skip: false`, repo `skip: true`, existing target → skipped.
 26. `patch: true` → `<target>/patch/*.patch` applied to the Moodle root, then `<target>/patch` removed. Missing dir → `Missing: <target>/patch`.
 27. Root `cleanup` runs before repo `cleanup`. Both apply to every subdirs target.
 28. A git failure → exit 1, `Failed: git clone … | <stderr>`. Earlier repos remain installed.
