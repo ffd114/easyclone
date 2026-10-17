@@ -1,5 +1,10 @@
 # easyclone
 
+> [!IMPORTANT]
+> **This repository is archived.** Please use the new Go implementation instead: [ffd114/easyclone-go](https://github.com/ffd114/easyclone-go).
+>
+> Following [Deno's announcement that the team is joining Cloudflare](https://deno.com/blog/cloudflare), development of the Deno runtime will end after a year of bug-fix and security releases. To keep easyclone viable long-term, active development has moved to the Go implementation, which is a faithful rewrite of this tool with the same config format.
+
 This tool is provided to manage Moodle plugin installations, as installing them manually can be very cumbersome.
 
 Inspired by [silecs/moodle-gitplugins](https://github.com/silecs/moodle-gitplugins) but written in Deno.
